@@ -20,11 +20,26 @@ function MapEvents({ onLocationSelect }) {
   return null;
 }
 
-export default function MapComponent({ center, from, to, onLocationSelect }) {
+function RouteLayer({ route }) {
+  const map = useMapEvents({});
+  useEffect(() => {
+    if (!route || !map) return;
+    const layer = L.geoJSON(route, {
+      style: { color: '#1e88e5', weight: 5, opacity: 0.8 },
+    }).addTo(map);
+    map.fitBounds(layer.getBounds(), { padding: [20, 20] });
+    return () => {
+      map.removeLayer(layer);
+    };
+  }, [route, map]);
+  return null;
+}
+
+export default function MapComponent({ center, from, to, route, onLocationSelect }) {
   return (
-    <MapContainer 
-      center={[center.lat, center.lng]} 
-      zoom={14} 
+    <MapContainer
+      center={[center.lat, center.lng]}
+      zoom={14}
       style={{ height: '100%', width: '100%' }}
       scrollWheelZoom={false}
     >
@@ -33,13 +48,14 @@ export default function MapComponent({ center, from, to, onLocationSelect }) {
         url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
       />
       <MapEvents onLocationSelect={onLocationSelect} />
-      
+      {route && <RouteLayer route={route} />}
+
       {from && (
         <Marker position={[from.lat, from.lng]}>
           <Popup>Вы здесь</Popup>
         </Marker>
       )}
-      
+
       {to && (
         <Marker position={[to.lat, to.lng]}>
           <Popup>Куда едем?</Popup>
